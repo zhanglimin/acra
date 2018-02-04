@@ -31,9 +31,9 @@ import org.acra.log.ACRALog;
 import org.acra.log.AndroidLogDelegate;
 import org.acra.prefs.SharedPreferencesFactory;
 import org.acra.reporter.ErrorReporterImpl;
-import org.acra.reporter.ErrorReporterStub;
 import org.acra.util.ApplicationStartupProcessor;
 import org.acra.util.StreamReader;
+import org.acra.util.StubCreator;
 
 import java.io.IOException;
 
@@ -108,7 +108,7 @@ public final class ACRA {
     public static final String PREF_LAST_VERSION_NR = "acra.lastVersionNr";
 
     @NonNull
-    private static ErrorReporter errorReporterSingleton = new ErrorReporterStub();
+    private static ErrorReporter errorReporterSingleton = StubCreator.createErrorReporterStub();
 
     /**
      * <p>
@@ -200,10 +200,10 @@ public final class ACRA {
                 log.d(LOG_TAG, "Not initialising ACRA to listen for uncaught Exceptions as this is the SendWorker process and we only send reports, we don't capture them to avoid infinite loops");
         }
 
-        final boolean supportedAndroidVersion = Build.VERSION.SDK_INT >= Build.VERSION_CODES.GINGERBREAD;
+        final boolean supportedAndroidVersion = Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH;
         if (!supportedAndroidVersion) {
             // NB We keep initialising so that everything is configured. But ACRA is never enabled below.
-            log.w(LOG_TAG, "ACRA 5.0.0+ requires Gingerbread or greater. ACRA is disabled and will NOT catch crashes or send messages.");
+            log.w(LOG_TAG, "ACRA 5.1.0+ requires ICS or greater. ACRA is disabled and will NOT catch crashes or send messages.");
         }
 
         if (isInitialised()) {
@@ -222,7 +222,7 @@ public final class ACRA {
         new LegacyFileHandler(app, prefs).updateToCurrentVersionIfNecessary();
         if (!senderServiceProcess) {
             // Initialize ErrorReporter with all required data
-            final boolean enableAcra = supportedAndroidVersion && !SharedPreferencesFactory.shouldDisableACRA(prefs);
+            final boolean enableAcra = supportedAndroidVersion && SharedPreferencesFactory.shouldEnableACRA(prefs);
             // Indicate that ACRA is or is not listening for crashes.
             log.i(LOG_TAG, "ACRA is " + (enableAcra ? "enabled" : "disabled") + " for " + app.getPackageName() + ", initializing...");
             ErrorReporterImpl reporter = new ErrorReporterImpl(app, config, enableAcra, supportedAndroidVersion);
@@ -246,7 +246,7 @@ public final class ACRA {
      */
     @SuppressWarnings("unused")
     public static boolean isInitialised() {
-        return errorReporterSingleton.isRegistered();
+        return errorReporterSingleton instanceof ErrorReporterImpl;
     }
 
     /**

@@ -15,23 +15,19 @@
  */
 package org.acra.config;
 
+import android.content.Context;
 import android.support.annotation.NonNull;
-
 import org.acra.ACRA;
 import org.acra.ReportField;
+import org.acra.annotation.BuilderMethod;
+import org.acra.annotation.ConfigurationValue;
 import org.acra.annotation.PreBuild;
 import org.acra.annotation.Transform;
+import org.acra.util.StubCreator;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.EnumMap;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.ServiceConfigurationError;
-import java.util.ServiceLoader;
-import java.util.Set;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.util.*;
 
 import static org.acra.ACRA.DEV_LOGGING;
 import static org.acra.ACRA.LOG_TAG;
@@ -49,7 +45,7 @@ public final class BaseCoreConfigurationBuilder {
     private final List<ConfigurationBuilder> configurationBuilders;
     private List<Configuration> configurations;
 
-    BaseCoreConfigurationBuilder(@NonNull Class<?> app) {
+    BaseCoreConfigurationBuilder(@NonNull Context app) {
         reportContentChanges = new EnumMap<>(ReportField.class);
         configurationBuilders = new ArrayList<>();
         //noinspection ForLoopReplaceableByForEach
@@ -72,8 +68,9 @@ public final class BaseCoreConfigurationBuilder {
         }
     }
 
+    @NonNull
     @Transform(methodName = "reportContent")
-    Set<ReportField> transformReportContent(ReportField[] reportFields) {
+    Set<ReportField> transformReportContent(@NonNull ReportField[] reportFields) {
         final Set<ReportField> reportContent = new LinkedHashSet<>();
         if (reportFields.length != 0) {
             if (ACRA.DEV_LOGGING) ACRA.log.d(LOG_TAG, "Using custom Report Fields");
@@ -100,22 +97,35 @@ public final class BaseCoreConfigurationBuilder {
      * @param field  the field to set
      * @param enable if this field should be reported
      */
+    @BuilderMethod
     public void setReportField(@NonNull ReportField field, boolean enable) {
         this.reportContentChanges.put(field, enable);
     }
 
+    @ConfigurationValue
     @NonNull
     List<Configuration> pluginConfigurations() {
         return configurations;
     }
 
-    public <R extends ConfigurationBuilder> R getPluginConfigurationBuilder(Class<R> c) {
+    @NonNull
+    @BuilderMethod
+    public <R extends ConfigurationBuilder> R getPluginConfigurationBuilder(@NonNull Class<R> c) {
         for (ConfigurationBuilder builder : configurationBuilders) {
             if (c.isAssignableFrom(builder.getClass())) {
                 //noinspection unchecked
                 return (R) builder;
             }
         }
-        return null;
+        if (c.isInterface()) {
+            ACRA.log.w(ACRA.LOG_TAG, "Couldn't find ConfigurationBuilder " + c.getSimpleName() + ". ALL CALLS TO IT WILL BE IGNORED!");
+            return StubCreator.createStub(c, new InvocationHandler() {
+                @Override
+                public Object invoke(Object proxy, Method method, Object[] args) {
+                    return proxy;
+                }
+            });
+        }
+        throw new IllegalArgumentException("Class " + c.getName() + " is not a registered ConfigurationBuilder");
     }
 }

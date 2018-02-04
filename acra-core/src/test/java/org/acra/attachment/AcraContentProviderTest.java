@@ -24,6 +24,8 @@ import android.webkit.MimeTypeMap;
 
 import com.google.common.net.MediaType;
 
+import org.acra.ACRA;
+import org.acra.log.RobolectricLog;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -53,6 +55,8 @@ public class AcraContentProviderTest {
 
     @Before
     public void setUp() throws Exception {
+        ACRA.log = new RobolectricLog();
+        ACRA.DEV_LOGGING = true;
         Robolectric.setupContentProvider(AcraContentProvider.class, RuntimeEnvironment.application.getPackageName() + ".acra");
         resolver = RuntimeEnvironment.application.getContentResolver();
         file = File.createTempFile("test", "." + JSON_EXTENSION);
@@ -60,7 +64,7 @@ public class AcraContentProviderTest {
     }
 
     @Test
-    public void query() throws Exception {
+    public void query() {
         final Cursor cursor = resolver.query(AcraContentProvider.getUriForFile(RuntimeEnvironment.application, file), new String[]{OpenableColumns.SIZE, OpenableColumns.DISPLAY_NAME}, null, null, null);
         assertNotNull(cursor);
         assertTrue(cursor.moveToFirst());
@@ -78,7 +82,7 @@ public class AcraContentProviderTest {
     }
 
     @Test
-    public void guessMimeType() throws Exception {
+    public void guessMimeType() {
         assertEquals(JSON_MIMETYPE, AcraContentProvider.guessMimeType(AcraContentProvider.getUriForFile(RuntimeEnvironment.application, file)));
     }
 

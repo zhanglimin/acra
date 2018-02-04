@@ -33,7 +33,7 @@ public final class ImmutableMap<K, V> implements Map<K, V>, Serializable {
 
     private final Map<K, V> mMap;
 
-    public ImmutableMap(Map<K, V> map) {
+    public ImmutableMap(@NonNull Map<K, V> map) {
         this.mMap = new HashMap<>(map);
     }
 
@@ -105,7 +105,7 @@ public final class ImmutableMap<K, V> implements Map<K, V>, Serializable {
         return new ImmutableList<>(mMap.values());
     }
 
-    public static class ImmutableEntryWrapper<K, V> implements Map.Entry<K, V> {
+    private static class ImmutableEntryWrapper<K, V> implements Map.Entry<K, V> {
         private final Map.Entry<K, V> mEntry;
 
         ImmutableEntryWrapper(Entry<K, V> mEntry) {
@@ -122,6 +122,7 @@ public final class ImmutableMap<K, V> implements Map<K, V>, Serializable {
             return mEntry.getValue();
         }
 
+        @NonNull
         @Override
         public V setValue(Object object) {
             throw new UnsupportedOperationException();

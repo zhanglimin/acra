@@ -190,7 +190,7 @@ public class EmailIntentSender implements ReportSender {
         context.startActivity(chooser);
     }
 
-    private void grantPermission(@NonNull Context context, Intent intent, String packageName, List<Uri> attachments) {
+    private void grantPermission(@NonNull Context context, @NonNull Intent intent, String packageName, @NonNull List<Uri> attachments) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
         } else {
@@ -209,8 +209,9 @@ public class EmailIntentSender implements ReportSender {
      */
     @NonNull
     protected String buildSubject(@NonNull Context context) {
-        if (mailConfig.subject() != ACRAConstants.DEFAULT_RES_VALUE) {
-            return context.getString(mailConfig.subject());
+        final String subject = mailConfig.subject();
+        if (subject != null) {
+            return subject;
         }
         return context.getPackageName() + " Crash Report";
     }

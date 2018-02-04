@@ -15,12 +15,11 @@
  */
 package org.acra.sender;
 
-import android.app.IntentService;
 import android.content.Intent;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import android.support.v4.app.JobIntentService;
 import android.widget.Toast;
 
 import org.acra.ACRA;
@@ -38,22 +37,21 @@ import java.util.List;
 
 import static org.acra.ACRA.LOG_TAG;
 
-public class SenderService extends IntentService {
+public class SenderService extends JobIntentService {
 
     public static final String EXTRA_ONLY_SEND_SILENT_REPORTS = "onlySendSilentReports";
     public static final String EXTRA_APPROVE_REPORTS_FIRST = "approveReportsFirst";
     public static final String EXTRA_ACRA_CONFIG = "acraConfig";
 
-    private final ReportLocator locator = new ReportLocator(this);
+    private final ReportLocator locator;
 
     public SenderService() {
-        super("ACRA SenderService");
-        setIntentRedelivery(true);
+        locator = new ReportLocator(this);
     }
 
     @Override
-    protected void onHandleIntent(@Nullable final Intent intent) {
-        if (intent == null || !intent.hasExtra(EXTRA_ACRA_CONFIG)) {
+    protected void onHandleWork(@NonNull Intent intent) {
+        if (!intent.hasExtra(EXTRA_ACRA_CONFIG)) {
             if(ACRA.DEV_LOGGING) ACRA.log.d(LOG_TAG, "SenderService was started but no valid intent was delivered, will now quit");
             return;
         }
@@ -94,12 +92,12 @@ public class SenderService extends IntentService {
                 reportDistributor.distribute(report);
                 reportsSentCount++;
             }
-            final int toastRes = reportsSentCount > 0 ? config.resReportSendSuccessToast() : config.resReportSendFailureToast();
-            if (toastRes != ACRAConstants.DEFAULT_RES_VALUE) {
+            final String toast = reportsSentCount > 0 ? config.reportSendSuccessToast() : config.reportSendFailureToast();
+            if (toast != null) {
                 new Handler(Looper.getMainLooper()).post(new Runnable() {
                     @Override
                     public void run() {
-                        ToastSender.sendToast(SenderService.this, toastRes, Toast.LENGTH_LONG);
+                        ToastSender.sendToast(SenderService.this, toast, Toast.LENGTH_LONG);
                     }
                 });
             }

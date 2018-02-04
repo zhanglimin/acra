@@ -53,7 +53,7 @@ public final class DisplayManagerCollector extends BaseReportFieldCollector {
     }
 
     @Override
-    void collect(ReportField reportField, @NonNull Context context, @NonNull CoreConfiguration config, @NonNull ReportBuilder reportBuilder, @NonNull CrashReportData target) {
+    void collect(@NonNull ReportField reportField, @NonNull Context context, @NonNull CoreConfiguration config, @NonNull ReportBuilder reportBuilder, @NonNull CrashReportData target) {
         final JSONObject result = new JSONObject();
         for (Display display : DisplayManagerCompat.getInstance(context).getDisplays()) {
             try {
@@ -90,7 +90,7 @@ public final class DisplayManagerCollector extends BaseReportFieldCollector {
         return result;
     }
 
-    private void collectIsValid(@NonNull Display display, JSONObject container) throws JSONException {
+    private void collectIsValid(@NonNull Display display, @NonNull JSONObject container) throws JSONException {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
             container.put("isValid", display.isValid());
         }
@@ -116,23 +116,19 @@ public final class DisplayManagerCollector extends BaseReportFieldCollector {
         }
     }
 
-    private void collectRectSize(@NonNull Display display, JSONObject container) throws JSONException {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2) {
-            final Rect size = new Rect();
-            display.getRectSize(size);
-            container.put("rectSize", new JSONArray(Arrays.asList(size.top, size.left, size.width(), size.height())));
-        }
+    private void collectRectSize(@NonNull Display display, @NonNull JSONObject container) throws JSONException {
+        final Rect size = new Rect();
+        display.getRectSize(size);
+        container.put("rectSize", new JSONArray(Arrays.asList(size.top, size.left, size.width(), size.height())));
     }
 
-    private void collectSize(@NonNull Display display, JSONObject container) throws JSONException {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2) {
-            final Point size = new Point();
-            display.getSize(size);
-            container.put("size", new JSONArray(Arrays.asList(size.x, size.y)));
-        }
+    private void collectSize(@NonNull Display display, @NonNull JSONObject container) throws JSONException {
+        final Point size = new Point();
+        display.getSize(size);
+        container.put("size", new JSONArray(Arrays.asList(size.x, size.y)));
     }
 
-    private void collectRealSize(@NonNull Display display, JSONObject container) throws JSONException {
+    private void collectRealSize(@NonNull Display display, @NonNull JSONObject container) throws JSONException {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
             final Point size = new Point();
             display.getRealSize(size);
@@ -168,13 +164,13 @@ public final class DisplayManagerCollector extends BaseReportFieldCollector {
         }
     }
 
-    private void collectName(@NonNull Display display, JSONObject container) throws JSONException {
+    private void collectName(@NonNull Display display, @NonNull JSONObject container) throws JSONException {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
             container.put("name", display.getName());
         }
     }
 
-    private void collectMetrics(@NonNull Display display, JSONObject container) throws JSONException {
+    private void collectMetrics(@NonNull Display display, @NonNull JSONObject container) throws JSONException {
         final DisplayMetrics metrics = new DisplayMetrics();
         display.getMetrics(metrics);
         final JSONObject result = new JSONObject();
@@ -182,7 +178,7 @@ public final class DisplayManagerCollector extends BaseReportFieldCollector {
         container.put("metrics", result);
     }
 
-    private void collectRealMetrics(@NonNull Display display, JSONObject container) throws JSONException {
+    private void collectRealMetrics(@NonNull Display display, @NonNull JSONObject container) throws JSONException {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
             final DisplayMetrics metrics = new DisplayMetrics();
             display.getRealMetrics(metrics);
@@ -192,7 +188,7 @@ public final class DisplayManagerCollector extends BaseReportFieldCollector {
         }
     }
 
-    private void collectMetrics(@NonNull DisplayMetrics metrics, JSONObject container) throws JSONException {
+    private void collectMetrics(@NonNull DisplayMetrics metrics, @NonNull JSONObject container) throws JSONException {
         container.put("density", metrics.density)
                 .put("densityDpi", metrics.densityDpi)
                 .put("scaledDensity", "x" + metrics.scaledDensity)
